@@ -1,0 +1,22 @@
+/build/
+/install/
+/log/
+CMakeFiles/
+CMakeCache.txt
+Makefile
+*.cmake
+*.swp
+
+# Editor-spezifische Dateien (z.B. für Vim, Emacs, etc.)
+*.swo
+*.swp
+
+# Python-Bytecode-Dateien
+*.pyc
+*.pyo
+
+# Cache-Dateien
+*.cache
+#Packages die ich nicht in diesem Repo brauche
+/src/ros_tutorials
+/src/timing_tubaf_cpp
