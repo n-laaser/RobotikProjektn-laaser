@@ -1,7 +1,7 @@
-#**Robotik Projekt - Repository von Nikolas Laaser**
+# **Robotik Projekt - Repository von Nikolas Laaser**
 
-##**Belegaufgabe 1 (Publisher Subscriber)**
-###**Funktionsweise**
+## **Belegaufgabe 1 (Publisher Subscriber)**
+### **Funktionsweise**
 Aufgabe war es zwei Packages zu erstellen, welche die jeweils die Aufgabe eines Publishers und eines Subscribers übernehmen sollen.
 Das Package cpp_pubsub enthält zwei ausführbare Dateien in cpp_pubsub/src, eine davon ist ein Publisher, die andere ein Subscriber für die Belegaufgabe ist jedoch nur der Publisher von nöten.
 Das andere Package ist timing_tubaf_py und enthält eine ausführbare Datei listener.py, welche hier als Subscriber funktioniert.
@@ -9,7 +9,7 @@ Die beiden Packages bewirken wenn man sie korrekt mit ros2 buildet, dass publish
 und der listener.py hört den Kanal ab und gibt das Hello WOrld mit der jeweiligen Zahl wieder. ZUsätzlich erstellt listener.py ein weiteres Topic Namens "diff" und veröffentlicht dort
 die Zeitdifferenz zwischen den letzten beiden Nachrichten die durch "number" angekommen sind.
 
-###**Abhängigkeiten**
+### **Abhängigkeiten**
 Um die Packages nutzen zu können, muss zuerst ROS2 Humble heruntergeladen werden und ein Workspace eingerichtet werden. 
 Zum Testen kann man einmal ein Demo pubsub programm ausführen, um sicherzustellen, dass alles korrekt funktioniert.
 Abhängigkeiten die in ROS für diese 2 Packages benötigt werden sind:
@@ -26,7 +26,7 @@ Man kann auch in ~/ros2_ws den Befehl
 rosdep install -i --from-path src --rosdistro humble -y
 ausführen um nach nach fehlenden Abhängigkeiten zu prüfen
 
-###**Startanleitung**
+### **Startanleitung**
 
 Öffne ein Terminal
 Begib dich in die root deines ROS2 Workspaces, wahrscheinlich ~/ros2_ws 
@@ -40,7 +40,7 @@ Gehe wieder in den root des Workspaces( "cd ~/ros2_ws")
 Danach Builde das C++ Package mit: "colcon build --packages-select cpp_pubsub"
 Das Pyhton Package kannst du mit: "colcon build --packages-select timing_tubaf_py" builden.
 
-####Publisher starten
+#### Publisher starten
 Öffne ein Neues terminal und führe erst ein setup durch:
 ". install/setup.bash"
 Im /src ordner des Package cpp_pubsub sind 2 .cpp dateien enthalten, aber wir brauchen nur "publisher_member_function.cpp" da dieses Dokument 
@@ -50,7 +50,7 @@ Das heißt du kannst den Publisher aufrufen durch
 "ros2 run cpp_pubsub talker"
 und nun sollte immer wieder "Hello World! 1" angezeigt werden (bloß dass die nummer immer größer wird).
 
-###Subscriber starten
+### Subscriber starten
 Öffne nun noch ein neues Terminal und führe erst den Befehel:
 ". install/setup.bash" 
 aus und dann den Befehl:
