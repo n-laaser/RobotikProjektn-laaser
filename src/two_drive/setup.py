@@ -1,6 +1,7 @@
 from setuptools import find_packages, setup
+from glob import glob
 
-package_name = 'linebounce'
+package_name = 'two_drive'
 
 setup(
     name=package_name,
@@ -10,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/launch', glob('launch/two_drive_launch.py'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +22,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-        'bouncer = linebounce.bouncer:main'
+        'nodemaster=two_drive.nodemaster:main',
+        'linefollow=two_drive.linefollow:main',
+        'laserturn=two_drive.linefollow:main',
         ],
     },
 )

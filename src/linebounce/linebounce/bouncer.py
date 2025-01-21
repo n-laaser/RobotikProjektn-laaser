@@ -39,8 +39,8 @@ class Driver(rclpy.node.Node):
         self.my_timer = self.create_timer(timer_period, self.timer_callback)
         # Welche Node soll anfangen?
 
-        self.node_follow.deactivate()
-        self.node_turn.activate()
+        self.node_follow.activate()
+        self.node_turn.deactivate()
         
 
     def laser_callback(self,msg):
@@ -169,13 +169,14 @@ class LineFollow(rclpy.node.Node):
         super().__init__('follower')
         
         # definition of the parameters that can be changed at runtime
-        self.declare_parameter('boundary_left', 90)
-        self.declare_parameter('boundary_right', 200)
+        self.declare_parameter('boundary_left', 200)
+        self.declare_parameter('boundary_right', 440)
         self.declare_parameter('threshold_line', 100) #is now light_lim
-        self.declare_parameter('speed_drive', 0.1)
-        self.declare_parameter('speed_turn', 0.3)
-        self.declare_parameter('light_lim', 200)
-        self.declare_parameter('middle_tol', 10)
+        self.declare_parameter('speed_drive', 0.075)
+        self.declare_parameter('speed_turn', 0.2)
+        self.declare_parameter('light_lim', 100)
+        self.declare_parameter('middle_tol', 20)
+        self.declare_parameter('speed_turn_adjust',0.3)
         self.lineposition = 0
         self.active = False
         # init openCV-bridge
@@ -186,7 +187,7 @@ class LineFollow(rclpy.node.Node):
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
                                           history=rclpy.qos.HistoryPolicy.KEEP_LAST,
                                           depth=1)
-
+        self.last_spin = False # False == gegen UHrzeigersinn True==mit Uhrzeigersinn
         # create subscribers for image data with changed qos
         self.subscription = self.create_subscription(
             CompressedImage,
@@ -200,7 +201,7 @@ class LineFollow(rclpy.node.Node):
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 1)
 
         # create timer to periodically invoke the driving logic
-        self.timer_period = 0.5  # seconds
+        self.timer_period = 0.2  # seconds
         #self.my_timer = self.create_timer(timer_period, self.timer_callback)
         self.my_timer = None
 
@@ -249,28 +250,62 @@ class LineFollow(rclpy.node.Node):
             boundary_right = self.get_parameter('boundary_right').get_parameter_value().integer_value
             speed_drive = self.get_parameter('speed_drive').get_parameter_value().double_value
             speed_turn = self.get_parameter('speed_turn').get_parameter_value().double_value
+            speed_turn_adjust = self.get_parameter('speed_turn_adjust').get_parameter_value().double_value
             light_lim = self.get_parameter('light_lim').get_parameter_value().integer_value
             middle_tol = self.get_parameter('middle_tol').get_parameter_value().integer_value
-            img_row = self.img_row
-            middle_pix = 160 
+            last_spin = self.last_spin
+            img_row_original = self.img_row
+            #print(len(img_row_original))
+
+            img_row = self.img_row[boundary_left:boundary_right]
+            #20 Größten Werte nach Größe geordnet
+            img_row_sorted = np.argsort(img_row)[-20:]
+
+            # Werte der 20 größten Elemente
+            largest_values = img_row[img_row_sorted]
+
+            # Index des mittleren Wertes der 20 größten im Teil-Array
+            middle_index_in_subset = np.argsort(largest_values)[len(largest_values) // 2]
+
+            # Index des mittleren Wertes im Original-Array
+            middle_index_in_original = img_row_sorted[middle_index_in_subset]
+
+            max_avg = np.mean(img_row_sorted)
+            #closest_index = img_row[np.argmin(np.abs(img_row_sorted - max_avg))]
+            #closest_index = np.argmin(np.abs(np.arange(len(img_row)) - max_avg))
+            closest_value = img_row[middle_index_in_original]
+            middle_pix = 320
             speed = 0.0
             turn = 0.0
             brightest = max(img_row)
-            bright_pos = np.where(img_row == brightest)[0][0]
+            #bright_pos = np.where(img_row == closest_value)[0][0]
+            line_pos = middle_index_in_original + boundary_left
 
-            if(brightest < light_lim):
+            self.get_logger().info(f"Hellster Wert: {brightest}")
+            self.get_logger().info(f"Durchschnittlich hellster Wert: {closest_value}")
+            #self.get_logger().info(f"Durchschnittlich hellster Index: {closest_index}")
+            self.get_logger().info(f"Mittlerer Index der hellsten Pixel: {middle_index_in_original})")
+            print(img_row)
+
+            if(brightest < light_lim  and last_spin == False):        
                 #no white in bottom line of image 
                 speed= 0.0
                 turn = speed_turn
+            elif(brightest < light_lim and last_spin == True):
+                speed= 0.0
+                turn = -speed_turn
             else:
                 speed=speed_drive
-                #white pixel in image line
-                if(bright_pos < (middle_pix - middle_tol) and bright_pos > boundary_left):
+                #white pixel in image line / and bright_pos > boundary_left)
+                if line_pos < (middle_pix) :
                     #left side is brightest: turn left '-'
-                    turn = -speed_turn
-                elif(bright_pos > (middle_pix + middle_tol) and bright_pos < boundary_right):
-                    # right side right turn '+'
                     turn = speed_turn
+                    self.last_spin = True
+                # and bright_pos < boundary_right)
+                elif line_pos > (middle_pix) :
+                    # right side right turn '+'
+                    turn = -speed_turn
+                    self.last_spin = False
                 else :
                         # bright pixel is in the middle 
                         turn = 0.0
@@ -308,12 +343,14 @@ def main(args=None):
     executor.add_node(laser_turn_node)
     executor.add_node(line_follow_node)
     try:
-        #rclpy.spin(driver_node)
-        executor.spin()
+        rclpy.spin(line_follow_node)
+        #executor.spin()
+        
     except KeyboardInterrupt:
         stop = Stopper()
         #print('except')
     finally:
+        stop = Stopper()
         driver_node.destroy_node()
         Stopper().destroy_node()
         rclpy.shutdown()

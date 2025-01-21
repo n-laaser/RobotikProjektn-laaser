@@ -17,6 +17,11 @@ Makefile
 
 # Cache-Dateien
 *.cache
-#Packages die ich nicht in diesem Repo brauche
+#Packages und Builds die ich nicht in diesem Repo brauche
 /src/ros_tutorials
 /src/timing_tubaf_cpp
+/src/follower_rob
+/src/build/
+/src/install/
+/src/log/
+
