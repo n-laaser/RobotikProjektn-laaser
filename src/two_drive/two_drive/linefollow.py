@@ -4,7 +4,6 @@ import rclpy.node
 import cv2
 import numpy as np
 
-from stopper import Stopper
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import CompressedImage
 from cv_bridge import CvBridge, CvBridgeError
@@ -29,7 +28,7 @@ class LineFollow(rclpy.node.Node):
         self.bridge = CvBridge()
 
         #self.img_row = np.array([0, 64, 128, 192, 255], dtype=np.uint8) # Beispiel
-        self.img_row = np.array([0],dtype=np.uint8)
+        self.img_row = np.random.randint(0, 256, 640, dtype=np.uint8)
 
         # definition of the QoS in order to receive data despite WiFi
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
@@ -75,7 +74,7 @@ class LineFollow(rclpy.node.Node):
 
     # driving logic for linefollowing
     def timer_callback(self):
-        self.get_logger().info("FollowerLogik")
+        #self.get_logger().info("FollowerLogic")
         
         boundary_left = self.get_parameter('boundary_left').get_parameter_value().integer_value
         boundary_right = self.get_parameter('boundary_right').get_parameter_value().integer_value
@@ -111,11 +110,11 @@ class LineFollow(rclpy.node.Node):
         #bright_pos = np.where(img_row == closest_value)[0][0]
         line_pos = middle_index_in_original + boundary_left
 
-        self.get_logger().info(f"Hellster Wert: {brightest}")
-        self.get_logger().info(f"Durchschnittlich hellster Wert: {closest_value}")
+        #self.get_logger().info(f"Hellster Wert: {brightest}")
+        #self.get_logger().info(f"Durchschnittlich hellster Wert: {closest_value}")
         #self.get_logger().info(f"Durchschnittlich hellster Index: {closest_index}")
-        self.get_logger().info(f"Mittlerer Index der hellsten Pixel: {middle_index_in_original})")
-        print(img_row)
+        #self.get_logger().info(f"Mittlerer Index der hellsten Pixel: {middle_index_in_original})")
+        #print(img_row)
 
         if(brightest < light_lim  and last_spin == False):        
             #no white in bottom line of image 
@@ -156,10 +155,11 @@ def main(args=None):
         rclpy.spin(node)
         
     except KeyboardInterrupt:
-        stop = Stopper()
+        print('Except in Linefollow')
 
     finally:
-        LineFollow.destroy_node()
-        stop.destroy_node()
-        rclpy.shutdown()
+        node.destroy_node()
         print('Shutting Down LineFollow')
+
+if __name__ == '__main__':
+    main()

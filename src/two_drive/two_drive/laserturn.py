@@ -3,8 +3,7 @@ import rclpy.executors
 import rclpy.node
 import cv2
 import numpy as np
-
-from stopper import Stopper
+import time
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
 from geometry_msgs.msg import Twist
@@ -34,7 +33,7 @@ class LaserTurn(rclpy.node.Node):
             self.scanner_callback,
             qos_profile=qos_policy)
         self.subscription  # prevent unused variable warning
-
+        self.front_distance = 2.0
         # create publisher for driving commands
         self.publisher_laserturn = self.create_publisher(Twist, 'laser', 1)
         self.is_turning = False
@@ -52,22 +51,36 @@ class LaserTurn(rclpy.node.Node):
         
     # driving logics
     def timer_callback(self):
-
+        #self.get_logger().info("TurnLogic")
+        print('Weinender Emoji')
         turn_dist = self.get_parameter('distance_to_turn').get_parameter_value().double_value
         turn_speed = self.get_parameter('speed_turn').get_parameter_value().double_value
         #drive_speed = self.get_parameter('speed_drive').get_parameter_value().double_value
         speed = 0.0
-        if self.counter <= 0:
-            self.is_turning = False
+        self.front_distance -= 0.2 # Wieder raus nehmen !!!!
+        #if self.counter <= 0:
+        #    self.is_turning = False
+
+        if self.is_turning == True:
+            time.sleep(self.turn_time)
+            self.is_turning=False
+
         # no or far away obstacle
-        if(self.front_distance <= turn_dist and self.front_distance!=0):
+        if(self.front_distance <= turn_dist and self.front_distance!=0.0):
+
+            self.get_logger().info('Triggering Turning')
             turn = turn_speed
             self.is_turning = True
             self.counter = self.turn_time 
+            self.front_distance = 2.0 # wieder raus nehmen! nur für test ohne roboter !!!!
             
-        elif (self.front_distance > turn_dist or self.front_distance == 0) and self.is_turning==False:
+        elif (self.front_distance > turn_dist or self.front_distance == 0.0):
             turn = 0.0
             self.is_turning = False
+        else:
+            self.get_logger().info('Something Went Wrong Laser Timercallback; Stopping robot')
+            turn = 0.0
+            speed = 0.0
 
         # create message
         self.counter -= 1
@@ -86,10 +99,11 @@ def main(args=None):
         rclpy.spin(node)
         
     except KeyboardInterrupt:
-        stop = Stopper()
+        print('Except in LaserTurn')
 
     finally:
-        LaserTurn.destroy_node()
-        stop.destroy_node()
-        rclpy.shutdown()
+        node.destroy_node()
         print('Shutting Down LaserTurn')
+
+if __name__ == '__main__':
+    main()

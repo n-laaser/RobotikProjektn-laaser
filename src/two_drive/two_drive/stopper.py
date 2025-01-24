@@ -18,5 +18,15 @@ class Stopper(rclpy.node.Node):
         msg.linear.x = 0.0
         msg.angular.z = 0.0
         print('Stop msg sent')
+        self.get_logger().info('Stop msg sent')
         # send message
         self.publisher_stop.publish(msg)
+
+def main(args=None):
+    rclpy.init(args=args)
+    stop = Stopper()
+    stop.destroy_node()
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
