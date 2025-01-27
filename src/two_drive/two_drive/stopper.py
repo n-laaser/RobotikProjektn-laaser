@@ -3,6 +3,7 @@ import rclpy.executors
 import rclpy.node
 import cv2
 import numpy as np
+import time
 
 from std_msgs.msg import String
 from sensor_msgs.msg import LaserScan
@@ -17,6 +18,7 @@ class Stopper(rclpy.node.Node):
         msg = Twist()
         msg.linear.x = 0.0
         msg.angular.z = 0.0
+        time.sleep(0.5)
         print('Stop msg sent')
         self.get_logger().info('Stop msg sent')
         # send message

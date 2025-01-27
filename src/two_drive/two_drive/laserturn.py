@@ -15,11 +15,11 @@ class LaserTurn(rclpy.node.Node):
         super().__init__('laserturn')
 
         # definition of the parameters that can be changed at runtime
-        self.declare_parameter('distance_to_turn', 0.5)
+        self.declare_parameter('distance_to_turn', 0.45)
         self.declare_parameter('speed_drive', 0.15)
         self.declare_parameter('speed_turn', 0.5)
         self.declare_parameter('laser_front', 0)
-        self.declare_parameter('turn_time', 2) # must ideally equal to an integer when divided by timer_period 
+        self.declare_parameter('turn_time', 2.0) # must ideally equal to an integer when divided by timer_period 
 
         # definition of the QoS in order to receive data despite WiFi
         qos_policy = rclpy.qos.QoSProfile(reliability=rclpy.qos.ReliabilityPolicy.BEST_EFFORT,
@@ -33,36 +33,36 @@ class LaserTurn(rclpy.node.Node):
             self.scanner_callback,
             qos_profile=qos_policy)
         self.subscription  # prevent unused variable warning
-        self.front_distance = 2.0
+        self.front_distance = 0.0
         # create publisher for driving commands
         self.publisher_laserturn = self.create_publisher(Twist, 'laser', 1)
         self.is_turning = False
         # create timer to periodically invoke the driving logic
         self.timer_period = 0.5  # seconds
         self.counter = 0
-        self.turn_time = round(self.get_parameter('turn_time').get_parameter_value().integer_value / self.timer_period)
+        self.turn_time = self.get_parameter('turn_time').get_parameter_value().double_value
         self.my_timer = self.create_timer(self.timer_period, self.timer_callback)
     
     # handling received laser scan data
     def scanner_callback(self, msg):
-
+        #self.get_logger().info(f'Hallo in LaserscannerCallback: {self.front_distance}')
         # saving the required sensor value, no further processing at this point
         self.front_distance = msg.ranges[self.get_parameter('laser_front').get_parameter_value().integer_value]
         
     # driving logics
     def timer_callback(self):
         #self.get_logger().info("TurnLogic")
-        print('Weinender Emoji')
+        #print('Weinender Emoji')
         turn_dist = self.get_parameter('distance_to_turn').get_parameter_value().double_value
         turn_speed = self.get_parameter('speed_turn').get_parameter_value().double_value
         #drive_speed = self.get_parameter('speed_drive').get_parameter_value().double_value
         speed = 0.0
-        self.front_distance -= 0.2 # Wieder raus nehmen !!!!
+        #self.front_distance -= 0.2 # Wieder raus nehmen !!!!
         #if self.counter <= 0:
         #    self.is_turning = False
-
+        #self.get_logger().info(f'Vorderer Abstand {self.front_distance}')
         if self.is_turning == True:
-            time.sleep(self.turn_time)
+            time.sleep(self.turn_time)  
             self.is_turning=False
 
         # no or far away obstacle
@@ -72,9 +72,9 @@ class LaserTurn(rclpy.node.Node):
             turn = turn_speed
             self.is_turning = True
             self.counter = self.turn_time 
-            self.front_distance = 2.0 # wieder raus nehmen! nur für test ohne roboter !!!!
+            #self.front_distance = 2.0 # wieder raus nehmen! nur für test ohne roboter !!!!
             
-        elif (self.front_distance > turn_dist or self.front_distance == 0.0):
+        elif ((self.front_distance > turn_dist or self.front_distance == 0.0) and self.is_turning == False):
             turn = 0.0
             self.is_turning = False
         else:

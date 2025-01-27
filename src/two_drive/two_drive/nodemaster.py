@@ -29,7 +29,7 @@ class Driver(rclpy.node.Node):
 
         self.publisher_ = self.create_publisher(Twist, 'cmd_vel', 1)
 
-        timer_period = 0.2
+        timer_period = 0.05
         self.my_timer = self.create_timer(timer_period, self.timer_callback )
 
     def laser_callback(self, msg):
@@ -52,17 +52,17 @@ class Driver(rclpy.node.Node):
     def timer_callback(self):
         #self.get_logger().info("DriverLogic")
         if(self.stateint == 1):
-            self.get_logger().info("using LineMsg")
+            #self.get_logger().info("using LineMsg")
             msg = self.line_msg
         elif(self.stateint == 2):
-            self.get_logger().info("using LaserMsg")
-            msg = self.laser_msg
+            #self.get_logger().info("using LaserMsg")
+            msg = self.laser_msg	
         else:
             self.get_logger().info('Error State entered in Driving Logic')
             msg = Twist()
             msg.linear.x = 0.0
             msg.angular.z = 0.0
-
+        self.get_logger().info(f'Speed: {msg.linear.x} Turn: {msg.angular.z}')
         self.publisher_.publish(msg)
 
 def main(args=None):

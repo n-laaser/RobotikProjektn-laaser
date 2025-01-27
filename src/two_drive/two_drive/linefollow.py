@@ -14,11 +14,11 @@ class LineFollow(rclpy.node.Node):
         super().__init__('follower')
         
         # definition of the parameters that can be changed at runtime
-        self.declare_parameter('boundary_left', 200)
-        self.declare_parameter('boundary_right', 440)
+        self.declare_parameter('boundary_left', 100) # 200 für 640px, 100 für 320
+        self.declare_parameter('boundary_right', 220) # 440 für 640px, 220 für 320px
         self.declare_parameter('threshold_line', 100) #is now light_lim
         self.declare_parameter('speed_drive', 0.075)
-        self.declare_parameter('speed_turn', 0.2)
+        self.declare_parameter('speed_turn', 0.3)
         self.declare_parameter('light_lim', 100)
         self.declare_parameter('middle_tol', 20)
         self.declare_parameter('speed_turn_adjust',0.3)
@@ -48,7 +48,7 @@ class LineFollow(rclpy.node.Node):
         self.publisher_linefollow = self.create_publisher(Twist, 'line', 1)
 
         # create timer to periodically invoke the driving logic
-        self.timer_period = 0.2  # seconds
+        self.timer_period = 0.1  # seconds
         self.my_timer = self.create_timer(self.timer_period, self.timer_callback)
     
     # handling received image data
@@ -103,7 +103,8 @@ class LineFollow(rclpy.node.Node):
         #closest_index = img_row[np.argmin(np.abs(img_row_sorted - max_avg))]
         #closest_index = np.argmin(np.abs(np.arange(len(img_row)) - max_avg))
         closest_value = img_row[middle_index_in_original]
-        middle_pix = 320
+        #middle_pix = 320 # für 640px x irgendwas
+        middle_pix = 160 # für 320px
         speed = 0.0
         turn = 0.0
         brightest = max(img_row)
@@ -113,39 +114,43 @@ class LineFollow(rclpy.node.Node):
         #self.get_logger().info(f"Hellster Wert: {brightest}")
         #self.get_logger().info(f"Durchschnittlich hellster Wert: {closest_value}")
         #self.get_logger().info(f"Durchschnittlich hellster Index: {closest_index}")
-        #self.get_logger().info(f"Mittlerer Index der hellsten Pixel: {middle_index_in_original})")
+        #self.get_logger().info(f"Helligkeit in Mitte: {img_row_original[middle_pix]})")
         #print(img_row)
-
+        
         if(brightest < light_lim  and last_spin == False):        
             #no white in bottom line of image 
             speed= 0.0
-            turn = speed_turn
+            turn = -speed_turn/2
+            #self.get_logger().info('Hallo if1')
         elif(brightest < light_lim and last_spin == True):
             speed= 0.0
-            turn = -speed_turn
+            turn = speed_turn/2
+            #self.get_logger().info('Hallo elif1')
         else:
             speed=speed_drive
             #white pixel in image line / and bright_pos > boundary_left)
             if line_pos < (middle_pix) :
-                #left side is brightest: turn left '-'
+                #left side is brightest: turn left '+' (Drehrichtung Roboter 30)
                 turn = speed_turn
-                self.last_spin = True
+                self.last_spin = False
+                #self.get_logger().info('Hallo if2')
             # and bright_pos < boundary_right)
             elif line_pos > (middle_pix) :
-                # right side right turn '+'
+                # right side right turn '-'
                 turn = -speed_turn
-                self.last_spin = False
+                self.last_spin = True
+                #self.get_logger().info('Hallo elif2')
             else :
                     # bright pixel is in the middle 
                     turn = 0.0
 
             # create message
-            msg = Twist()
-            msg.linear.x = speed
-            msg.angular.z = turn
-
+        msg = Twist()
+        msg.linear.x = speed
+        msg.angular.z = turn
             # send message
-            self.publisher_linefollow.publish(msg)
+        #self.get_logger().info('Line publisher')
+        self.publisher_linefollow.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
