@@ -68,7 +68,7 @@ Da das Array welches auf 'scan' gepublished wird 360 werte hat muss man die erst
 Ist der geringste Abstandswert unter den ersten 30, dreht sich der roboter mit dem Uhrzeigersinn um den geringen Wert näher an 0 Grad herran zu bekommen. Indem er immer wieder nach links und rechts korrigiert und weiter fährt kann er so das objekt verfolge.
 Ab einem bestimmten Abstand hält der Roboter jedoch auch einfach vor dem Objekt an.
 
-Alle nötigen dependencies sind im Paket 'hier laserscann pakage namen einfügen' enthalten. Kopiere das Package in deinen ros2 WorkSpace und führe:
+Alle nötigen dependencies sind im Paket 'laser_follow' enthalten. Kopiere das Package in deinen ros2 WorkSpace und führe:
 colcon build 
 (oder colcon build --packages-select 'packagename' 'entrypoint/executable') 
 und anschließen source install/setup.bash 
