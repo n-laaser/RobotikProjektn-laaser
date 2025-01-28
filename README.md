@@ -74,7 +74,7 @@ colcon build
 und anschließen source install/setup.bash 
 um das Program laufen zu lassen gib, nachdem du gebuildet hast in das Terminal ein:
 
-ros2 run 'package name' 'executable' 
+ros2 run laser_follow laser_follow 
 
 Der Roboter fährt nun gerade aus los und folgt dem nächsten Objekt was eine bestimmte Distanz unterschreitet, bis es vor ihm stehen bleibt.
 Er beachtet nur die 60° die sich vor ihm befinden, also kann er stecken bleiben wenn man ihm zu nah an einer Ecke entlang leitet. 
